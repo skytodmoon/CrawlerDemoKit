@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	resp, err := http.Get("http://www.zhenai.com/zhenghun")
+	resp, err := http.Get("http://m.zhenai.com/zhenghun")
 	if err != nil {
 		panic(err)
 	}
@@ -31,7 +32,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%s\n", all)
+	printCityList(all)
 }
 
 func determineEncoding(r io.Reader) encoding.Encoding {
@@ -42,5 +43,26 @@ func determineEncoding(r io.Reader) encoding.Encoding {
 
 	e, _, _ := charset.DetermineEncoding(bytes, "")
 	return e
+
+}
+
+const text = "My email is sq0502@126.com"
+
+func getEmailURL() {
+	re := regexp.MustCompile(`.+@.+\..+`)
+	match := re.FindString(text)
+	fmt.Println(match)
+
+}
+
+func printCityList(contents []byte) {
+	regStr := `<a href="(http://m.zhenai.com/zhenghun/[0-9a-z]+)"[^>]*>([^<]+)</a>`
+	re := regexp.MustCompile(regStr)
+	matchs := re.FindAllSubmatch(contents, -1)
+	for _, m := range matchs {
+		fmt.Printf("city:%s,URL:%s\n", m[2], m[1])
+		fmt.Println()
+	}
+	fmt.Printf("Matches :%d", len(matchs))
 
 }
